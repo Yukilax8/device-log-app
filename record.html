@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>ドラフトチャンバー使用記録フォーム</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+  <h2>ドラフトチャンバー使用記録フォーム</h2>
+
+  <form id="record-form">
+    <label>氏名: <input type="text" name="name" required></label><br><br>
+
+    <label>現在日付（自動）: 
+      <input type="text" name="now" id="now" readonly required>
+    </label><br><br>
+
+    <label>使用開始時刻: 
+      <input type="time" name="start" required>
+    </label><br><br>
+
+    <label>使用終了時刻: 
+      <input type="time" name="end" required>
+    </label><br><br>
+
+    <label>
+      <input type="checkbox" name="check1" value="OK" required> ドラフトの扉を閉めた
+    </label><br>
+
+    <label>
+      <input type="checkbox" name="check2" value="OK" required> 廃液タンクを閉めた
+    </label><br><br>
+
+    <button type="submit">記録する</button>
+  </form>
+
+  <p id="status"></p>
+
+  <script>
+    // 年月日だけ自動で入力
+    const nowField = document.getElementById('now');
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = (now.getMonth() + 1).toString().padStart(2, '0');
+    const day = now.getDate().toString().padStart(2, '0');
+    nowField.value = `${year}/${month}/${day}`;
+
+    // フォーム送信処理
+    const form = document.getElementById('record-form');
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const formData = new FormData(form);
+      const data = {
+        name: formData.get('name'),
+        now: formData.get('now'),
+        start: formData.get('start'),
+        end: formData.get('end'),
+        check1: formData.get('check1') ? 'OK' : '未確認',
+        check2: formData.get('check2') ? 'OK' : '未確認'
+      };
+
+      fetch('https://script.google.com/macros/s/AKfycbyPuOGjuUsU_zzDw5cfq8zyib9OxHh2_2JwlQU7Vfh5EcRNIiPzRePUT-yNyLFW3OjD/exec', {
+        method: 'POST',
+        body: JSON.stringify(data),
+      })
+      .then(res => res.text())
+      .then(txt => {
+        document.getElementById('status').innerText = '記録完了しました。';
+        form.reset();
+        nowField.value = `${year}/${month}/${day}`; // リセット後に再入力
+      })
+      .catch(err => {
+        document.getElementById('status').innerText = '送信エラーが発生しました';
+      });
+    });
+  </script>
+</body>
+</html>
